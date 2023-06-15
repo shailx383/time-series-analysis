@@ -1,0 +1,147 @@
+<!--
+	THIS EXAMPLE WAS DOWNLOADED FROM https://echarts.apache.org/examples/en/editor.html?c=line-simple&code=PYBwLglsB2AEC8sDeAoWtJgDYFMBcya6GOAHmAQOQAKAhgE6S1awCCArmMAMbD304stSDFggswCrAAmEAGZyEsAEyUiAXwA0RLsCyQQBVMQz0IAc3M56VWqQgBnNei1FcV6NKNF004bQIAbRpWAGEAMUpNWEoAVRAQa1hQmDkIaRxobhxYXAA3QSiYgBlgAHcklOg0jKyc_MKAXQ1tdFJWewdvEzAAT0SqbmEccz5eqJ8ZfyCABmiARmjlaIBmaIAWaIBWaIA2aIB2aIAOaIBOBbnYecXr5eu1683rnev966Pr0-uLlRnmlytWC9DqObrEPoDGJ5ZjsHDOWCudAOawQHBdWCBSbGEywaC0AC2-Bi1DCkSBJj8YACgXmADo5kQZnT5ut5ltlDN1scVutduyzjNlJsiABaZkrY4zG67M5y-a7XYHNnzNZi5lbJVbA4cnkrLbrFYzM6ndV03ac5TKC3rM4HFbKLbzY7LM18yW7dYzXbei1yn1HM28yUHeaOl0-l1na1A5kzFah3kHY5nbnGzVbHZMllWs5bFPHfm5s6e03oONbQXHJ3S3ma6PrV3ocV05SSxvHA4zTXGz3uoEt_kc4NOr03eZ5gdx-bS50zY5suXG5UT2MMtszLs6zOy9bre2btdG_PKM6qs6SoUdteqm4p5SFn1e4dN2DTm4HB9L_W7Tt7tXlgy562sKn7JkaFrelODK_gaTorJ6xoms6FxmpuCH7soM6yi68ZrlyXYltyZ7rJmjqho0FIQv0xKUFgEDQPCkxIsQOImPiRIEAARPEiT0MkqTpJk2S5DgBRYFxVG-NMgRxiaCF5lKE7KMm8GtHJPKyvm0rRqpqrqQy8laUpunVvpaAaQp2nKXpAGWcZOkqWZdmGZpimObZBnGm51mmWpFmuVZJlOf5b6BQ5NnOV5RnuZFoX2bFfnmWF3lBR5UUBalEVJS5WWJSFyUJb5BW5TFxWeZlZXBRVKVVel8XhflNVFdVGW1T5rXwZRkzoJCtH0YxEy4rAvASDYMQAEZCNwADWCKAmxxAccSXGlBU_FVDUwn1GJgiST1UzUnggQtnl5VtaddVxcll0dfVN0tfdAG3Wl13PY9b2tC92UlV9H05X9jXnaF31NRd_2_WgoPAw9QOdbDZ3w-9cNPYDiOo1DEM1dDSNo1dAOYyjn2E-jb3dcNfVUAN8JSSNeh8FQ5gCOMzFAs06gANxAA
+	⚠ Please be aware that this chart is not an official demo of Apache ECharts but is made by user-generated code.
+-->
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+  <meta charset="utf-8">
+</head>
+<body style="height: 100%; margin: 0">
+  <div id="container" style="height: 100%"></div>
+
+  
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+  <!-- Uncomment this line if you want to dataTool extension
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5.4.2/dist/extension/dataTool.min.js"></script>
+  -->
+  <!-- Uncomment this line if you want to use gl extension
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts-gl@2/dist/echarts-gl.min.js"></script>
+  -->
+  <!-- Uncomment this line if you want to echarts-stat extension
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts-stat@latest/dist/ecStat.min.js"></script>
+  -->
+  <!-- Uncomment this line if you want to use map
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@4.9.0/map/js/china.js"></script>
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@4.9.0/map/js/world.js"></script>
+  -->
+  <!-- Uncomment these two lines if you want to use bmap extension
+  <script type="text/javascript" src="https://api.map.baidu.com/api?v=3.0&ak=YOUR_API_KEY"></script>
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5.4.2/dist/extension/bmap.min.js"></script>
+  -->
+
+  <script type="text/javascript">
+    var dom = document.getElementById('container');
+    var myChart = echarts.init(dom, null, {
+      renderer: 'canvas',
+      useDirtyRect: false
+    });
+    var app = {};
+    
+    var option;
+
+    option = {
+  title: {
+    text: 'Partial Autocorrelation plot: diff = 2'
+  },
+  tooltip: {
+    trigger: 'axis'
+  },
+  legend: {
+    data: ['PACF', 'Upper Confidence level', 'Lower Confidence level']
+  },
+  xAxis: {
+    type: 'category',
+    data: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+  },
+  yAxis: {
+    type: 'value'
+  },
+  series: [
+    {
+      name: 'PACF',
+      data:[1.0,
+  0.14152048346159024,
+  -0.38011699916674113,
+  -0.5675752833543098,
+  -0.6202262497325182,
+  -0.46386406066299607,
+  -0.34387125826082926,
+  0.03713478948095655,
+  0.12295898612299648,
+  0.05908510134569242,
+  -0.23842870560964463,
+  -0.6152343514011195,
+  -0.010118084199097419,
+  0.023070755569447307,
+  0.3058291393802428,
+  0.13118928660405232,
+  0.011172899035687443,
+  0.013949247278306206,
+  -0.06854513640998189,
+  -0.073647210698203,
+  0.04709648914552571],
+      type: 'line'
+    },
+    {
+      name: "Upper Confidence level",
+      data:[0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513,
+ 0.09836958019278513],
+      type: 'line',
+      color: 'black'
+    },{
+      name: "Lower Confidence level",
+      data:[-0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513,
+ -0.09836958019278513],
+      type: 'line',
+      color: 'grey'
+    },
+  ]
+};
+
+    if (option && typeof option === 'object') {
+      myChart.setOption(option);
+    }
+
+    window.addEventListener('resize', myChart.resize);
+  </script>
+</body>
+</html>
