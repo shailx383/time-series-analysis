@@ -5,6 +5,5 @@
 * Error/Residuals
 * Stationarity: make time series stationary (log, power, rolling transform)/ stationarity tests
 * Autocorrelation/Partial Autocorrelation
-* Rolling Statistics
 * Cross-correlation
 * Granger Causality Test
