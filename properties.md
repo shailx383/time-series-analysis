@@ -7,3 +7,4 @@
 * Autocorrelation/Partial Autocorrelation
 * Cross-correlation
 * Granger Causality Test
+* Autocovariance, Cross covariance
