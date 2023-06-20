@@ -21,6 +21,6 @@ def convert_to_unified_format(date_string):
     raise ValueError("Invalid date format")
 
 # Example usage
-date_input = input("Enter a date: ")
-unified_date = convert_to_unified_format(date_input)
-print("Unified date format:", unified_date)
+# date_input = input("Enter a date: ")
+# unified_date = convert_to_unified_format(date_input)
+# print("Unified date format:", unified_date)
