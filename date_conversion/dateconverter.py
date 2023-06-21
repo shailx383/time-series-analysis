@@ -84,19 +84,25 @@ class DateConverter:
                                                 'Time zone name (empty string if the object is naive).']}
         return
 
-    def convert_date(self, date: str, format_str=None):
+    def convert_date(self, date: str, include_time = False, format_str=None):
         if not format_str:
             for date_format in self.formats:
                 try:
                     date = datetime.strptime(date, date_format)
-                    return date.strftime("%Y-%m-%d")
+                    if not include_time:
+                        return date.strftime("%Y-%m-%d")
+                    else:
+                        return datetime.strftime("%Y-%m-%d %H:%M:%S")
                 except ValueError:
                     pass
 
             raise ValueError("Invalid date format")
 
         else:
-            return datetime.strptime(date, format_str).strftime("%Y-%m-%d")
+            if not include_time:
+                return datetime.strptime(date, format_str).strftime("%Y-%m-%d")
+            else:
+                return datetime.strptime(date, format_str).strftime("%Y-%m-%d %H:%M:%S")
 
     def add_format(self, date_format: str):
         self.formats.append(date_format)

@@ -30,7 +30,7 @@ class Trend:
             return {
                 "title": "Trend of " + self.idf.columns[0] + ":",
                 "data": vals,
-                "x": [str(i.date()) for i in self.idf.index.to_list()]
+                "x": [str(i.date())+' '+str(i.time()) for i in self.idf.index.to_list()]
             }
         else:
             t.plot()
@@ -56,7 +56,7 @@ class Trend:
                 "title": "Original vs Detrend of " + self.idf.columns[0] + ":",
                 "data": d['Original'].values.tolist(),
                 "data_detrend": d['Detrend'].values.tolist(),
-                "x": [str(i.date()) for i in self.idf.index.to_list()]
+                "x": [str(i.date())+' '+str(i.time()) for i in self.idf.index.to_list()]
             }
         else:
             d.plot()
@@ -68,14 +68,14 @@ class Seasonality:
         self.y = y
 
     def _index_df(self):
-        idf = pd.DataFrame(self.df[[self.x, self.y]])
+        idf = pd.DataFrame(self.df[[self.x, self.y]])   
         idf[self.x] = pd.to_datetime(idf[self.x], infer_datetime_format = True)
         idf = idf.set_index([self.x])
         self.idf = idf
 
-    def seasonal(self):
+    def seasonal(self, model = 'multiplicative'):
         self._index_df()
-        t = seasonal_decompose(self.idf, model = "multiplicative").seasonal
+        t = seasonal_decompose(self.idf, model = model).seasonal
         return t
 
     def plot(self, show_plot = False):
@@ -85,7 +85,7 @@ class Seasonality:
             return {
                 "title": "Seasonality of " + self.idf.columns[0] + ":",
                 "data": vals,
-                "x": [str(i.date()) for i in self.idf.index.to_list()]
+                "x": [str(i.date())+' '+str(i.time()) for i in self.idf.index.to_list()]
             }
         else:
             t.plot()
@@ -106,7 +106,7 @@ class Seasonality:
                 "title": "Original vs Deseasonalized of " + self.idf.columns[0] + ":",
                 "data": d['Original'].values.tolist(),
                 "data_des": d['Deseasonalized'].values.tolist(),
-                "x": [str(i.date()) for i in self.idf.index.to_list()]
+                "x": [str(i.date())+' '+str(i.time()) for i in self.idf.index.to_list()]
             }
         else:
             d.plot()
@@ -203,7 +203,7 @@ class Stationarity:
         return {
             'title': 'Transformed series',
             'data': self.transformed.dropna().values.tolist(),
-            'x': self.df[self.x].values.tolist()
+            "x": [str(i.date())+' '+str(i.time()) for i in self.df[self.x].to_list()]
         }
 
 class Autocorrelation:
@@ -288,9 +288,11 @@ class CrossCorrelation:
         self.series2 = series2
         self.time = x
 
-    def cross_correlation(self, lag):
+    def cross_correlation(self, lag, summary = False):
         corr = ccf(self.series1.values.tolist(), self.series2.values.tolist(), adjusted = False)
         self.ccf = corr
+        if summary:
+            print("Max positive correlation is", max(self.ccf) ,"at lag =", np.argmax(self.ccf), "\nMax negative correlation is",min(self.ccf) ," at lag =", np.argmin(self.ccf))
         return corr[lag]
 
     def plot(self):
@@ -298,12 +300,8 @@ class CrossCorrelation:
             'legend': [self.series1.name,self.series2.name],
             1: self.series1.values.tolist(),
             2: self.series2.values.tolist(),
-            'x': self.time.values.tolist()
+            "x": [str(i.date()) for i in self.time.to_list()]
         }
-
-    def summary(self):
-#         pd.Series(self.ccf).plot()
-        print("Max positive correlation is", max(self.ccf) ,"at lag = ", np.argmax(self.ccf), "\nMax negative correlation is",min(self.ccf) ," at lag = ", np.argmin(self.ccf))
 
 def granger_causality_matrix(data, variables, maxlag = 12, test='ssr_chi2test', verbose=False, summary = False):
     df = pd.DataFrame(np.zeros((len(variables), len(variables))), columns=variables, index=variables)
@@ -341,7 +339,7 @@ class Differencing:
   def plot_diff(self):
     return {
         "data" : self.diff.values.tolist(),
-        "x": self.df[self.x].values.tolist()
+        "x": [str(i.date())+' '+str(i.time()) for i in self.df[self.x].to_list()]
     }
 
   def adf_test(self):
@@ -369,7 +367,7 @@ class Autocovariance:
     return {
         'title': 'Autocovariance of ' + timeseries.name + ':',
         'y': self.autocovariance(timeseries).tolist(),
-        'x': x.values.tolist()
+        "x": [str(i.date()) for i in x.to_list()]
     }
     
 class CrossCovariance:
@@ -383,5 +381,5 @@ class CrossCovariance:
     return {
         'title': 'Cross covariance of ' + timeseries1.name + ' with ' + timeseries2.name + ':',
         'y': self.cross_covariance(timeseries1, timeseries2).tolist(),
-        'x': x.values.tolist()
+        "x": [str(i.date()) for i in x.to_list()]
     }
