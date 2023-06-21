@@ -11,6 +11,7 @@ class Trend:
         self.df = df
         self.x = x
         self.y = y
+        self._index_df()
 
     def _index_df(self):
         idf = pd.DataFrame(self.df[[self.x, self.y]])
@@ -19,7 +20,6 @@ class Trend:
         self.idf = idf
 
     def trend(self):
-        self._index_df()
         t = seasonal_decompose(self.idf, model = "multiplicative").trend
         return t
 
@@ -50,7 +50,6 @@ class Trend:
 
 
     def plot_detrend(self, show_plot = False):
-        self._index_df()
         d = self.detrend()
         if not show_plot:
             return {
