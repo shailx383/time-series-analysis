@@ -1,26 +1,105 @@
 import re
 from datetime import datetime
+import pandas as pd
 
-def convert_to_unified_format(date_string):
-    formats = [
-        "%Y-%m-%d",  # YYYY-MM-DD
-        "%Y/%m/%d",  # YYYY/MM/DD
-        "%m-%d-%Y",  # MM-DD-YYYY
-        "%m/%d/%Y",  # MM/DD/YYYY
-        "%d-%m-%Y",  # DD-MM-YYYY
-        "%d/%m/%Y",  # DD/MM/YYYY
-    ]
 
-    for date_format in formats:
-        try:
-            date = datetime.strptime(date_string, date_format)
-            return date.strftime("%Y-%m-%d")
-        except ValueError:
-            pass
+class DateConverter:
+    def __init__(self):
+        self.formats = [
+            "%Y-%m-%d",  # YYYY-MM-DD
+            "%Y/%m/%d",  # YYYY/MM/DD
+            "%m-%d-%Y",  # MM-DD-YYYY
+            "%m/%d/%Y",  # MM/DD/YYYY
+            "%d-%m-%Y",  # DD-MM-YYYY
+            "%d/%m/%Y",  # DD/MM/YYYY
+        ]
+        self.directives_info = {'Code': ['%a',
+                                         '%A',
+                                         '%w',
+                                         '%d',
+                                         '%-d',
+                                         '%b',
+                                         '%B',
+                                         '%m',
+                                         '%-m',
+                                         '%y',
+                                         '%Y',
+                                         '%H',
+                                         '%-H',
+                                         '%I',
+                                         '%-I',
+                                         '%p',
+                                         '%M',
+                                         '%-M',
+                                         '%S',
+                                         '%-S',
+                                         '%f',
+                                         '%z',
+                                         '%Z'],
+                                'Example': ['Sun',
+                                            'Sunday',
+                                            '0',
+                                            '08',
+                                            '8',
+                                            'Sep',
+                                            'September',
+                                            '09',
+                                            '9',
+                                            '13',
+                                            '2013',
+                                            '07',
+                                            '7',
+                                            '07',
+                                            '7',
+                                            'AM',
+                                            '06',
+                                            '6',
+                                            '05',
+                                            '5',
+                                            '000000',
+                                            '+0000',
+                                            'UTC'],
+                                'Description': ['Weekday as locale\'s abbreviated name.',
+                                                'Weekday as locale\'s full name.',
+                                                'Weekday as a decimal number, where 0 is Sunday and 6 is Saturday.',
+                                                'Day of the month as a zero-padded decimal number.',
+                                                'Day of the month as a decimal number. (Platform speciﬁc)',
+                                                'Month as locale\'s abbreviated name.',
+                                                'Month as locale\'s full name.',
+                                                'Month as a zero-padded decimal number.',
+                                                'Month as a decimal number. (Platform speciﬁc)',
+                                                'Year without century as a zero-padded decimal number.',
+                                                'Year with century as a decimal number.',
+                                                'Hour (24-hour clock) as a zero-padded decimal number.',
+                                                'Hour (24-hour clock) as a decimal number. (Platform speciﬁc)',
+                                                'Hour (12-hour clock) as a zero-padded decimal number.',
+                                                'Hour (12-hour clock) as a decimal number. (Platform speciﬁc)',
+                                                'Locale\'s equivalent of either AM or PM.',
+                                                'Minute as a zero-padded decimal number.',
+                                                'Minute as a decimal number. (Platform speciﬁc)',
+                                                'Second as a zero-padded decimal number.',
+                                                'Second as a decimal number. (Platform speciﬁc)',
+                                                'Microsecond as a decimal number, zero-padded to 6 digits.',
+                                                'UTC oﬀset in the form ±HHMM[SS[.ﬀﬀﬀ]] (empty string if the object is naive).',
+                                                'Time zone name (empty string if the object is naive).']}
+        return
 
-    raise ValueError("Invalid date format")
+    def convert_date(self, date: str, format_str=None):
+        if not format_str:
+            for date_format in self.formats:
+                try:
+                    date = datetime.strptime(date, date_format)
+                    return date.strftime("%Y-%m-%d")
+                except ValueError:
+                    pass
 
-# Example usage
-# date_input = input("Enter a date: ")
-# unified_date = convert_to_unified_format(date_input)
-# print("Unified date format:", unified_date)
+            raise ValueError("Invalid date format")
+
+        else:
+            return datetime.strptime(date, format_str).strftime("%Y-%m-%d")
+
+    def add_format(self, date_format: str):
+        self.formats.append(date_format)
+        
+    def directive_df(self):
+        return pd.DataFrame(self.directives_info)
