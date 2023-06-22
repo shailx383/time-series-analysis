@@ -6,13 +6,25 @@ from interpolation import interpolate_dates as interpolate
 import properties as props
 import sys
 
-df = pd.read_csv("datasets/2/monthly-beer-production-in-austr.csv")
-drop_cols = []
+# specifying data
+df = pd.read_csv("datasets/1/train.csv")
+
+# conditions to filter dataframe
+filter_conditions = {"product":0, "store":0}
+for col, val in filter_conditions.items():
+    df = pd.DataFrame(df[df[col] == val])
+
+# columns to drop
+drop_cols = ['product', 'store']
 df = df.drop(drop_cols, axis = 1) if len(drop_cols) else df
-x = "Month"
+
+#specifying time axis
+x = "Date"
 y = df.columns.tolist()
 y.remove(x)
-freq = 'm'
+
+# specifying frequency of data
+freq = 'd'
 
 def test_input_formats():
     assert (isinstance(df, pd.DataFrame)) and (x, str) and (y, list[str])
@@ -20,6 +32,9 @@ def test_input_formats():
 def test_continuous_timeseries():
     df[x] = pd.to_datetime(df[x])
     assert len(interpolate(df, x, y, interval=freq)) == len(df)
+
+def test_does_not_have_nan():
+    assert sum(df[y].isna().sum().values) == 0
 
 def test_time_format_valid():
     try:
