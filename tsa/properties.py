@@ -15,7 +15,7 @@ class Trend:
 
     def _index_df(self):
         idf = pd.DataFrame(self.df[[self.x, self.y]])
-        idf[self.x] = pd.to_datetime(idf[self.x], infer_datetime_format = True)
+        idf[self.x] = pd.to_datetime(idf[self.x])
         idf = idf.set_index([self.x])
         self.idf = idf
 
@@ -70,7 +70,7 @@ class Seasonality:
 
     def _index_df(self):
         idf = pd.DataFrame(self.df[[self.x, self.y]])   
-        idf[self.x] = pd.to_datetime(idf[self.x], infer_datetime_format = True)
+        idf[self.x] = pd.to_datetime(idf[self.x])
         idf = idf.set_index([self.x])
         self.idf = idf
 
