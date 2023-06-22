@@ -49,14 +49,15 @@ class Trend:
         return detrend_df
 
 
-    def plot_detrend(self, show_plot = False):
+    def plot_detrend(self, show_plot = False, remove_time = False):
         d = self.detrend()
+        x_plot =  [str(i.date())+' '+str(i.time()) for i in self.idf.index.to_list()] if not remove_time else [str(i.date()) for i in self.idf.index.to_list()]
         if not show_plot:
             return {
                 "title": "Original vs Detrend of " + self.idf.columns[0] + ":",
                 "data": d['Original'].values.tolist(),
                 "data_detrend": d['Detrend'].values.tolist(),
-                "x": [str(i.date())+' '+str(i.time()) for i in self.idf.index.to_list()]
+                "x": x_plot
             }
         else:
             d.plot()
@@ -78,14 +79,15 @@ class Seasonality:
         t = seasonal_decompose(self.idf, model = model).seasonal
         return t
 
-    def plot(self, show_plot = False):
+    def plot(self, show_plot = False, remove_time = False):
         t = self.seasonal()
+        x_plot =  [str(i.date())+' '+str(i.time()) for i in self.idf.index.to_list()] if not remove_time else [str(i.date()) for i in self.idf.index.to_list()]
         vals = t.array.dropna().tolist()
         if not show_plot:
             return {
                 "title": "Seasonality of " + self.idf.columns[0] + ":",
                 "data": vals,
-                "x": [str(i.date())+' '+str(i.time()) for i in self.idf.index.to_list()]
+                "x": x_plot
             }
         else:
             t.plot()
@@ -99,14 +101,15 @@ class Seasonality:
         deseasonalize_df = deseasonalize_df.set_index([self.x])
         return deseasonalize_df
 
-    def plot_deseasonalize(self, show_plot = False):
+    def plot_deseasonalize(self, show_plot = False, remove_time = False):
         d = self.deseasonalize()
+        x_plot =  [str(i.date())+' '+str(i.time()) for i in self.idf.index.to_list()] if not remove_time else [str(i.date()) for i in self.idf.index.to_list()]
         if not show_plot:
             return {
                 "title": "Original vs Deseasonalized of " + self.idf.columns[0] + ":",
                 "data": d['Original'].values.tolist(),
                 "data_des": d['Deseasonalized'].values.tolist(),
-                "x": [str(i.date())+' '+str(i.time()) for i in self.idf.index.to_list()]
+                "x": x_plot
             }
         else:
             d.plot()
@@ -134,7 +137,7 @@ class Stationarity:
         elif test == 'kpss':
             dftest = kpss(self.df[self.y], regression = 'ct')
             print("1. KPSS : ",dftest[0])
-            print("2. P-Value : ", dftest[1])
+            print("2. P-Value : ", dftest[1])   
             print("3. Num Of Lags : ", dftest[2])
             # print("4. Num Of Observations Used For KPSS Regression and Critical Values Calculation :", dftest[3])
             print("4. Critical Values :")
@@ -199,11 +202,12 @@ class Stationarity:
         self.transformed = transformed
         return transformed.dropna()
 
-    def get_transform_plot_params(self):
+    def get_transform_plot_params(self, remove_time = False):
+        x_plot =  [str(i.date())+' '+str(i.time()) for i in self.df[self.x].to_list()] if not remove_time else [str(i.date()) for i in self.df[self.x].to_list()]   
         return {
             'title': 'Transformed series',
             'data': self.transformed.dropna().values.tolist(),
-            "x": [str(i.date())+' '+str(i.time()) for i in self.df[self.x].to_list()]
+            "x": x_plot
         }
 
 class Autocorrelation:
@@ -336,10 +340,11 @@ class Differencing:
   def _get_diff(self):
     return self.df[self.y].diff(self.order)
 
-  def plot_diff(self):
+  def plot_diff(self, remove_time = False):
+    x_plot =  [str(i.date())+' '+str(i.time()) for i in self.df[self.x].to_list()] if not remove_time else [str(i.date()) for i in self.df[self.x].to_list()]
     return {
         "data" : self.diff.values.tolist(),
-        "x": [str(i.date())+' '+str(i.time()) for i in self.df[self.x].to_list()]
+        "x": x_plot
     }
 
   def adf_test(self):
@@ -363,11 +368,12 @@ class Autocovariance:
   def autocovariance(self, timeseries):
     return acovf(timeseries)
 
-  def plot(self, timeseries, x):
+  def plot(self, timeseries, x, remove_time = False):
+    x_plot =  [str(i.date())+' '+str(i.time()) for i in x.to_list()] if not remove_time else [str(i.date()) for i in x.to_list()]
     return {
         'title': 'Autocovariance of ' + timeseries.name + ':',
         'y': self.autocovariance(timeseries).tolist(),
-        "x": [str(i.date()) for i in x.to_list()]
+        "x": x_plot
     }
     
 class CrossCovariance:
@@ -377,9 +383,10 @@ class CrossCovariance:
   def cross_covariance(self, timeseries1, timeseries2):
     return ccovf(timeseries1, timeseries2)
 
-  def plot(self, timeseries1, timeseries2, x):
+  def plot(self, timeseries1, timeseries2, x, remove_time = False):
+    x_plot =  [str(i.date())+' '+str(i.time()) for i in x.to_list()] if not remove_time else [str(i.date()) for i in x.to_list()]
     return {
         'title': 'Cross covariance of ' + timeseries1.name + ' with ' + timeseries2.name + ':',
         'y': self.cross_covariance(timeseries1, timeseries2).tolist(),
-        "x": [str(i.date()) for i in x.to_list()]
+        "x": x_plot
     }
