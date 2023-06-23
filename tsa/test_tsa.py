@@ -8,31 +8,35 @@ import properties as props
 import sys
 
 # specifying data
-df = pd.read_csv("datasets/1/train.csv")
+df = pd.read_csv("datasets/2/Electric_Production.csv")
 
 # conditions to filter dataframe
-filter_conditions = {"product":0, "store":0}
+filter_conditions = {}
 for col, val in filter_conditions.items():
     df = pd.DataFrame(df[df[col] == val])
 
 # columns to drop
-drop_cols = ['product', 'store']
+drop_cols = []
 df = df.drop(drop_cols, axis = 1) if len(drop_cols) else df
 
 #specifying time axis
-x = "Date"
+x = "DATE"
 y = df.columns.tolist()
 y.remove(x)
 
 # specifying frequency of data
 # freq = pd.to_timedelta(np.diff(df[x]).min())
 
+def get_freq(x):
+    return 'M' if x.days == 28 else x
+
 def test_input_formats():
-    assert (isinstance(df, pd.DataFrame)) and (x, str) and (y, list[str])
+    assert (isinstance(df, pd.DataFrame)) and isinstance(x, str) and isinstance (y, list) and isinstance(y[0], str)
 
 def test_continuous_timeseries():
     df[x] = pd.to_datetime(df[x])
     freq = pd.to_timedelta(np.diff(df[x]).min())
+    freq = get_freq(freq)
     assert len(interpolate(df, x, y, interval=freq)) == len(df) 
 
 def test_does_not_have_nan():
@@ -54,4 +58,6 @@ def test_seasonal_working():
         seasonal_component = s.seasonal()
     except ValueError:
         pytest.fail("Problem with frequency or time index.")
+
+
 
