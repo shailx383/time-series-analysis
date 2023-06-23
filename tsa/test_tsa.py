@@ -1,6 +1,7 @@
 import pytest
 from datetime import datetime
 import pandas as pd
+import numpy as np
 from visualization import *
 from interpolation import interpolate_dates as interpolate
 import properties as props
@@ -24,14 +25,15 @@ y = df.columns.tolist()
 y.remove(x)
 
 # specifying frequency of data
-freq = 'd'
+# freq = pd.to_timedelta(np.diff(df[x]).min())
 
 def test_input_formats():
     assert (isinstance(df, pd.DataFrame)) and (x, str) and (y, list[str])
 
 def test_continuous_timeseries():
     df[x] = pd.to_datetime(df[x])
-    assert len(interpolate(df, x, y, interval=freq)) == len(df)
+    freq = pd.to_timedelta(np.diff(df[x]).min())
+    assert len(interpolate(df, x, y, interval=freq)) == len(df) 
 
 def test_does_not_have_nan():
     assert sum(df[y].isna().sum().values) == 0
