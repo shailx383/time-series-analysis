@@ -8,7 +8,7 @@ import properties as props
 import sys
 
 # specifying data
-df = pd.read_csv("datasets/2/Electric_Production.csv")
+df = pd.read_csv("datasets/5/Wind Time Series Dataset(10min).csv")
 
 # conditions to filter dataframe
 filter_conditions = {}
@@ -20,7 +20,7 @@ drop_cols = []
 df = df.drop(drop_cols, axis = 1) if len(drop_cols) else df
 
 #specifying time axis
-x = "DATE"
+x = "Time"
 y = df.columns.tolist()
 y.remove(x)
 
@@ -37,6 +37,7 @@ def test_continuous_timeseries():
     df[x] = pd.to_datetime(df[x])
     freq = pd.to_timedelta(np.diff(df[x]).min())
     freq = get_freq(freq)
+    print("Frequency of series is: ", freq)
     assert len(interpolate(df, x, y, interval=freq)) == len(df) 
 
 def test_does_not_have_nan():
@@ -54,6 +55,9 @@ def test_trend_working():
     
 def test_seasonal_working():
     try:
+        # freq = pd.to_timedelta(np.diff(df[x]).min())
+        # freq = get_freq(freq)
+        # new = interpolate(df, x, y, interval=freq)
         s = props.Seasonality(df, y[0], x)
         seasonal_component = s.seasonal()
     except ValueError:

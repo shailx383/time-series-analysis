@@ -100,9 +100,11 @@ class DateConverter:
 
         else:
             if not include_time:
-                return datetime.strptime(date, format_str).strftime("%Y-%m-%d")
+                date_string = datetime.strptime(date, format_str).strftime("%Y-%m-%d")
+                return pd.to_datetime(date_string)
             else:
-                return datetime.strptime(date, format_str).strftime("%Y-%m-%d %H:%M:%S")
+                date_string = datetime.strptime(date, format_str).strftime("%Y-%m-%d %H:%M:%S")
+                return pd.to_datetime(date_string)
 
     def add_format(self, date_format: str):
         self.formats.append(date_format)
