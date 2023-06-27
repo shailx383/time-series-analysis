@@ -1,6 +1,24 @@
 import pandas as pd
 from sklearn.cluster import KMeans
 
+def single_line_plot(df: pd.DataFrame, x: str, y: str, title: str, remove_time: bool = False):
+    '''
+        returns an object with data which is used to plot Apache E Charts waterfall plot
+        
+        Args:
+            - df (pd.DataFrame): dataframe with time series to be plotted
+            - x (str): column name of datetime axis
+            - y (str): column name of time series data
+            - title (str): title of plot
+            - remove_time (bool): True will not include time with the date strings in the output
+    '''
+    x_plot =  [str(i.date())+' '+str(i.time()) for i in df[x].to_list()] if not remove_time else [str(i.date()) for i in df[x].to_list()]
+    return {
+    'title': title,
+    'y': df[y].values.tolist(),
+    'x': x_plot
+    }
+
 def waterfall_plot(df: pd.DataFrame, x: str, y: str, title: str, remove_time: bool = False):
     '''
         returns an object with data which is used to plot Apache E Charts waterfall plot
