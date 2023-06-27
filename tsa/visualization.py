@@ -1,7 +1,25 @@
 import pandas as pd
 from sklearn.cluster import KMeans
 
-def waterfall_plot(df: pd.DataFrame, x: str, y: str, title: str, remove_time = False):
+def waterfall_plot(df: pd.DataFrame, x: str, y: str, title: str, remove_time: bool = False):
+    '''
+        returns an object with data which is used to plot Apache E Charts waterfall plot
+        
+        Args:
+            - df (pd.DataFrame): dataframe with time series to be plotted
+            - x (str): column name of datetime axis
+            - y (str): column name of time series data
+            - title (str): title of plot
+            - remove_time (bool): True will not include time with the date strings in the output
+        
+        Returns:
+            -(dict):
+                - 't': title of the plot
+                - 'x': x-axis data
+                - 'y': y-axis data (starting points of bars)
+                - 'i': ending points of increasing bars
+                - 'd': ending points of decreasing bars 
+    '''
     vals = df[y].to_list()
     color_labels =[]
     for i in range (1, len(vals)):
@@ -35,7 +53,24 @@ def waterfall_plot(df: pd.DataFrame, x: str, y: str, title: str, remove_time = F
         'd': d_list
     }
     
-def stacked_area_plot(df, columns, x, title, remove_time = False):
+def stacked_area_plot(df: pd.DataFrame, columns: list[str], x: str, title: str, remove_time: bool = False):
+    '''
+        returns object which can be used to plot Apache E Charts stacked area chart
+        
+        Args: 
+            - df (pd.DataFrame): dataframe with the time series columns
+            - columns (list[str]): list of names of columns to be plotted in area chart
+            - x (str): name of datetime axis column
+            - title (str): title of plot
+            - remove_time (bool): True will not include time with the date strings in the output
+            
+        Returns:
+            - (dict):
+                - 'title': title of plot
+                - 'names': names of columns
+                - 'vals': data to be plotted
+                - 'x': x-axis data
+    '''
     x_plot =  [str(i.date())+' '+str(i.time()) for i in df[x].to_list()] if not remove_time else [str(i.date()) for i in df[x].to_list()]
     return {
         'title': title,
@@ -44,7 +79,21 @@ def stacked_area_plot(df, columns, x, title, remove_time = False):
         "x": x_plot
     }
 
-def lag_plot(timeseries, lag, data_reduce = 1):
+def lag_plot(timeseries: pd.Series, lag: int, title: str, data_reduce: int = 1):
+    '''
+        returns object for plotting lag plot or scatter plot in Apache Echarts
+        
+        Args:
+            - timeseries (pd.Series): timeseries to be plotted
+            - lag (int): lag at which plot is to be made
+            - data_reduce (int): factor by which we want to make the lagplot more sparse
+            - title (str): title of plot
+        
+        Returns:
+            - (dict) 
+                - "data": data to be plotted
+                - "title: title of plot
+    '''
     x = timeseries.values[:-lag].tolist()
     y = timeseries.values[lag:].tolist()
     data = []
@@ -53,9 +102,26 @@ def lag_plot(timeseries, lag, data_reduce = 1):
     kmeans = KMeans(int(len(data)/data_reduce))
     kmeans.fit(data)
     data = kmeans.cluster_centers_
-    return data.tolist()
+    return {"data": data.tolist(),
+            "title": title}
     
-def stream_graph(df, columns, x, remove_time= False):
+def stream_graph(df: pd.DataFrame, columns: list[str], x: str, title: str, remove_time: bool= False):
+    '''
+        returns object which can be used to plot Apache E Charts stacked area chart
+        
+        Args: 
+            - df (pd.DataFrame): dataframe with the time series columns
+            - columns (list[str]): list of names of columns to be plotted in area chart
+            - x (str): name of datetime axis column
+            - title (str): title of plot
+            - remove_time (bool): True will not include time with the date strings in the output
+            
+        Returns:
+            - (dict):
+                - 'title': title of plot
+                - 'names': names of columns
+                - 'data': data to be plotted
+    '''
     vals = []
     x_plot =  [str(i.date())+' '+str(i.time()) for i in df[x].to_list()] if not remove_time else [str(i.date()) for i in df[x].to_list()]
     for i in columns:
@@ -63,5 +129,6 @@ def stream_graph(df, columns, x, remove_time= False):
             vals.append([x_plot[val_idx], df[i].values[val_idx], i])
     return {
         'data': vals,
-        'names': columns
+        'names': columns,
+        'title': title
     }

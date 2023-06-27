@@ -4,6 +4,9 @@ import pandas as pd
 
 
 class DateConverter:
+    '''
+        class for conversion of dates of any format into unified pandas datetime object
+    '''
     def __init__(self):
         self.formats = [
             "%Y-%m-%d",  # YYYY-MM-DD
@@ -85,6 +88,17 @@ class DateConverter:
         return
 
     def convert_date(self, date: str, include_time = False, format_str=None):
+        '''
+            converts date string into unified datetime format
+            
+            Args:   
+                - date (str): date string
+                - include_time (bool): True if output should include time along with date
+                - format_str (str): format of input date string, if None infers format from self.formats
+            
+            Returns:
+                (str): date in YYYY-MM-DD format
+        '''
         if not format_str:
             for date_format in self.formats:
                 try:
@@ -100,14 +114,30 @@ class DateConverter:
 
         else:
             if not include_time:
-                date_string = datetime.strptime(date, format_str).strftime("%Y-%m-%d")
-                return pd.to_datetime(date_string)
+                return datetime.strptime(date, format_str).strftime("%Y-%m-%d")
             else:
-                date_string = datetime.strptime(date, format_str).strftime("%Y-%m-%d %H:%M:%S")
-                return pd.to_datetime(date_string)
+                return datetime.strptime(date, format_str).strftime("%Y-%m-%d %H:%M:%S")
 
     def add_format(self, date_format: str):
+        '''
+            adds a date format to the set of date_formats
+            
+            Args:
+                - date_format (str): date format to be added
+            
+            Returns:
+                - None
+        '''
         self.formats.append(date_format)
         
     def directive_df(self):
+        '''
+            dataframe of string directives to specify format
+            
+            Args:
+                - no arguments
+            
+            Returns:
+                - (pd.DataFrame): dataframe with all directives, examples, and description
+        '''
         return pd.DataFrame(self.directives_info)
