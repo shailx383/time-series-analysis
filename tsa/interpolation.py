@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def interpolate_dates(df: pd.DataFrame, x: str, y: list[str], interval = 'D', method = 'linear'):
     '''
@@ -27,12 +27,16 @@ def interpolate_dates(df: pd.DataFrame, x: str, y: list[str], interval = 'D', me
 
     return final_df
 
-def impute_time_axis(time_axis: pd.Series):
+def _round_dt(dt, delta):
+    return datetime.min + round((dt - datetime.min) / delta) * delta
+
+def impute_time_axis(time_axis: pd.Series, freq: timedelta = timedelta(days = 1)):
     '''
         fills null values in the time axis
         
         Args:
             - time_axis (pd.Series): column with datetime info
+            - freq (timedelta): frequency of time series
             
         Returns:
             - (pd.Series): datetime column with no null values
@@ -40,6 +44,7 @@ def impute_time_axis(time_axis: pd.Series):
     if time_axis.isna().sum() == 0:
         return pd.to_datetime(time_axis)
     series = pd.to_datetime(time_axis)
+    print(series[0].minute)
     time_list = series.to_list()
     null_intervals = []
     idx = 0
@@ -58,17 +63,12 @@ def impute_time_axis(time_axis: pd.Series):
             })
         else:
             idx += 1
-    seconds_intervals = [np.linspace(interval["start"].timestamp(), interval["end"].timestamp(), interval["nulls"]) for interval in null_intervals]
-    datetimes = []
-    for interval in seconds_intervals:
-        arr = []
-        for date in interval:
-            arr.append(datetime.fromtimestamp(int(date)).date())
-        datetimes.append(arr[1:-1])
-    final_fill_values = []
-    for interval in datetimes:
-        for date in interval:
-            final_fill_values.append(date)
+    seconds_intervals =  [np.linspace(interval["start"].timestamp(), interval["end"].timestamp(), interval["nulls"]) for interval in null_intervals]
+    x = []
+    for i in seconds_intervals:
+        for j in i[1:-1]:
+            x.append(j)
+    final_fill_values = [pd.to_datetime(_round_dt(datetime.utcfromtimestamp(i), freq)) for i in x]
     column = []
     idx = 0
     for i in time_axis.to_list():
@@ -77,4 +77,6 @@ def impute_time_axis(time_axis: pd.Series):
             idx += 1
         else:
             column.append(i)
-    return pd.Series(pd.to_datetime(column))
+    ser = pd.Series(pd.to_datetime(column))
+    return ser
+    
