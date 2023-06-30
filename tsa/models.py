@@ -84,88 +84,112 @@ class MovingAverage:
     def get_forecasts(self, num_periods):
         return self.model.forecast(num_periods)
 
-class ModelARIMA:
+class Arima:
     def __init__(self):
-        self.df = None
+        self._auto = None
         return
-
-    def load_timeseries(self, df: pd.DataFrame, x: str, y: str):
-        self.x = x
-        self.y = y
-        df = pd.DataFrame(df[x, y])
-        df = df.set_index([x])
-        self.df = df
-
-    def build_model(self, order = None, show_summary = True):
+    
+    def _index_df(self, df: pd.DataFrame, x: str, y: str):
+        idf = pd.DataFrame(df[[x, y]])
+        converter = DateConverter()
+        idf[x] = idf[x].apply(lambda x: converter.convert_date(x))
+        idf = idf.set_index([x])
+        return idf
+    
+    def __call__(self, df: pd.DataFrame, x: str, y: str):
+        self._y = y
+        self._df = self._index_df(df, x, y)
+    
+    def fit(self, order = None, show_summary=True):
         if order is None:
-            self.auto = True
-            model = auto_arima(self.df, start_p=1, start_q=1,
-                      test='adf',
-                      max_p=5, max_q=5,
-                      m=1,
-                      d=None,
-                      seasonal=False,
-                      start_P=0,
-                      D=0,
-                      trace=True,
-                      error_action='ignore',
-                      suppress_warnings=True,
-                      stepwise=True)
-            self.model_fit = model
+            self._auto_arima = pm.auto_arima(self._df, stepwise = False, seasonal=False)
             if show_summary:
-                print(model.summary())
+                print(self._auto_arima.summary())
+            self._auto = True
         else:
-            self.auto = False
-            model = ARIMA(self.df, order=order)
-            model_fit = model.fit()
+            self._auto = False
+            model = ARIMA(self._df, order = order)
+            self._arima = model.fit()
             if show_summary:
-                print(model_fit.summary())
-            self.model_fit = model_fit
-            print('Model built successfully.')
-
-    def plot_forecast(self, periods):
-        if not self.auto:
-            fig = plt.figure()
-            self.df.plot(label = 'Series')
-            fc = self.model_fit.forecast(periods)
-            fc.plot(label = 'Forecast')
+                print(self._arima.summary())
+                
+    def predict(self, num_periods: int):
+        if self._auto is None:
+            print("run fit() first")
+        elif self._auto is True:
+            self._forecasts = self._auto_arima.predict(n_periods = num_periods)
+            return self._forecasts
         else:
-            fig = plt.figure()
-            self.df.plot(label = 'Series')
-            fc = self.model_fit.predict(periods)
-            fc.plot(label = 'Forecast')
-
-    def get_forecasts(self, periods):
-        if not self.auto:
-            return self.model_fit.forecast(periods)
+            self._forecasts = self._arima.forecast(num_periods)
+            return self._forecasts
+         
+    def plot_forecast(self, test_df, y, exclude_time = False):
+        if self._auto is None:
+            print("run fit() first")
         else:
-            return self.model_fit.predict(periods)
-
-    def error_metrics(self, test_series):
-        actual = test_series[test_series.columns[0]].to_numpy()
-        forecast = self.get_forecasts(len(actual)).values
-        mape = np.mean(np.abs(forecast - actual)/np.abs(actual))
-        me = np.mean(forecast - actual)
-        mae = np.mean(np.abs(forecast - actual))
-        mpe = np.mean((forecast - actual)/actual)
-        rmse = np.mean((forecast - actual)**2)**.5
-        corr = np.corrcoef(forecast, actual)[0,1]
-        mins = np.amin(np.hstack([forecast[:,None], actual[:,None]]), axis=1)
-        maxs = np.amax(np.hstack([forecast[:,None], actual[:,None]]), axis=1)
-        minmax = 1 - np.mean(mins/maxs)
-        return (pd.Series({'mape':mape, 'me':me, 'mae': mae,
-                'mpe': mpe, 'rmse':rmse, 'minmax':minmax, 'corr': corr}))
-
-    def plot_test_forecast(self, test_series):
-        if not self.auto:
-            ax = self.df.plot()
-            test_series.plot(ax = ax, color = 'g')
-            fc = self.model_fit.forecast(len(test_series))
-            fc.plot(ax = ax, color = 'r')
-            plt.show()
+            forecasts = self.predict(len(test_df))
+            if exclude_time:
+                x_axis_data = self._df.index.tolist()+[str(i.date()) for i in forecasts.index.tolist()]
+            else:
+                x_axis_data = self._df.index.tolist()+[str(i.date()) + ' ' + str(i.time()) for i in forecasts.index.tolist()]
+            y_axis_series = self._df[self._df.columns[0]].to_list() + ['-']*len(test_df)
+            y_axis_forecast = ['-']*len(self._df) + forecasts.values.tolist()
+            y_axis_test = ['-']*len(self._df) + test_df[y].to_list()
+            
+            return {
+                'title': f'Forecast of {self._y}:',
+                'x': x_axis_data,
+                'y_series': y_axis_series,
+                'y_test': y_axis_test,
+                'y_forecast': y_axis_forecast
+            }
+    
+    def test_stationarity(self, order_of_differencing = 0):
+        
+        df = self._df
+        
+        for i in range(order_of_differencing):
+            df = df.diff().dropna()
+        
+        dftest = adfuller(df[self._y], autolag = 'AIC')
+        print("1. ADF : ",dftest[0])
+        print("2. P-Value : ", dftest[1])
+        print("3. Num Of Lags : ", dftest[2])
+        print("4. Num Of Observations Used For ADF Regression and Critical Values Calculation :", dftest[3])
+        print("5. Critical Values :")
+        for key, val in dftest[4].items():
+            print("\t",key, ": ", val)
+        if dftest[1] > 0.05:
+            print(f"\n\nAs p-value is outside the confidence interval of 95%, series is non-stationary.\nDifferenced: {order_of_differencing}")
         else:
-            ax = self.df.plot(label = 'Series')
-            test_series.plot(ax = ax, color = 'g')
-            fc = self.model_fit.predict(len(test_series))
-            fc.plot(ax = ax, color = 'r')
-            plt.show()
+            print(f"\n\nAs p-value is inside the confidence interval of 95%, series is stationary.\nDifferenced: {order_of_differencing}")
+    
+    def acf_plot(self):
+        acf_vals, confint = acf(self._df, alpha = 0.05)
+        return {
+            'title': f'Autocorrelation plot of {self._y}',
+            'y': acf_vals.tolist(),
+            'x': list(range(len(acf_vals))),
+            'upper': (confint[:, 1] - acf_vals).tolist(),
+            'lower': (confint[:, 0] - acf_vals).tolist()
+        }
+        
+    def pacf_plot(self):
+        pacf_vals, confint = pacf(self._df, alpha = 0.05)
+        return {
+            'title': f'Partial Autocorrelation plot of {self._y}',
+            'y': pacf_vals.tolist(),
+            'x': list(range(len(pacf_vals))),
+            'upper': (confint[:, 1] - pacf_vals).tolist(),
+            'lower': (confint[:, 0] - pacf_vals).tolist()
+        }  
+    
+    def error_metrics(self, test_df, y):
+        return pd.DataFrame([
+            
+            ["MAPE", mean_absolute_percentage_error(test_df[y], self._forecasts)],
+            ["MAE", mean_absolute_error(test_df[y], self._forecasts)],
+            ["MSE", mean_squared_error(test_df[y], self._forecasts)]], columns=["Metric", "Value"]
+        )
+    
+        

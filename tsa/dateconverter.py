@@ -15,6 +15,7 @@ class DateConverter:
             "%m/%d/%Y",  # MM/DD/YYYY
             "%d-%m-%Y",  # DD-MM-YYYY
             "%d/%m/%Y",  # DD/MM/YYYY
+            "%Y-%m"
         ]
         self.directives_info = {'Code': ['%a',
                                          '%A',
