@@ -168,20 +168,31 @@ class Arima:
         else:
             print(f"\n\nAs p-value is inside the confidence interval of 95%, series is stationary.\nDifferenced: {order_of_differencing}")
     
-    def acf_plot(self):
-        acf_vals, confint = acf(self._df, alpha = 0.05)
+    def acf_plot(self, order_of_differencing = 0):
+        
+        df = self._df
+        
+        for i in range(order_of_differencing):
+            df = df.diff().dropna()
+            
+        acf_vals, confint = acf(df, alpha = 0.05)
         return {
-            'title': f'Autocorrelation plot of {self._y}',
+            'title': f'Autocorrelation plot of {self._y}, order = {order_of_differencing}',
             'y': acf_vals.tolist(),
             'x': list(range(len(acf_vals))),
             'upper': (confint[:, 1] - acf_vals).tolist(),
             'lower': (confint[:, 0] - acf_vals).tolist()
         }
         
-    def pacf_plot(self):
-        pacf_vals, confint = pacf(self._df, alpha = 0.05)
+    def pacf_plot(self, order_of_differencing = 0):
+        df = self._df
+        
+        for i in range(order_of_differencing):
+            df = df.diff().dropna()
+            
+        pacf_vals, confint = pacf(df, alpha = 0.05)
         return {
-            'title': f'Partial Autocorrelation plot of {self._y}',
+            'title': f'Partial Autocorrelation plot of {self._y}, order = {order_of_differencing}',
             'y': pacf_vals.tolist(),
             'x': list(range(len(pacf_vals))),
             'upper': (confint[:, 1] - pacf_vals).tolist(),
