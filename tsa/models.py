@@ -1,9 +1,13 @@
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 import pandas as pd
-from statsmodels.tsa.holtwinters import SimpleExpSmoothing, Holt
-import numpy as np
 from statsmodels.tsa.arima.model import ARIMA
-from pmdarima.arima import auto_arima
+from statsmodels.tsa.stattools import adfuller
+import pmdarima as pm
+from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
+from tsa.dateconverter import DateConverter
+from statsmodels.tsa.stattools import acf, pacf
 
+'''
 class ExponentialSmoothingModel:
   def __init__(self, df, x, y):
     self.df = df
@@ -83,7 +87,7 @@ class MovingAverage:
 
     def get_forecasts(self, num_periods):
         return self.model.forecast(num_periods)
-
+'''
 class Arima:
     def __init__(self):
         self._auto = None
