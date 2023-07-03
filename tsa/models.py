@@ -200,11 +200,12 @@ class Arima:
         }  
     
     def error_metrics(self, test_df, y):
+        forecasts = self.predict(len(test_df))
         return pd.DataFrame([
             
-            ["MAPE", mean_absolute_percentage_error(test_df[y], self._forecasts)],
-            ["MAE", mean_absolute_error(test_df[y], self._forecasts)],
-            ["MSE", mean_squared_error(test_df[y], self._forecasts)]], columns=["Metric", "Value"]
+            ["MAPE", mean_absolute_percentage_error(test_df[y], forecasts)],
+            ["MAE", mean_absolute_error(test_df[y], forecasts)],
+            ["MSE", mean_squared_error(test_df[y], forecasts)]], columns=["Metric", "Value"]
         )
     
         

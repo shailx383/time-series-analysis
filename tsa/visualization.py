@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.cluster import KMeans
 
-def single_line_plot(df: pd.DataFrame, x: str, y: str, title: str, remove_time: bool = False):
+def single_line_plot(df: pd.DataFrame, x: str, y: str, remove_time: bool = False):
     '''
         returns an object with data which is used to plot Apache E Charts waterfall plot
         
@@ -14,8 +14,28 @@ def single_line_plot(df: pd.DataFrame, x: str, y: str, title: str, remove_time: 
     '''
     x_plot =  [str(i.date())+' '+str(i.time()) for i in df[x].to_list()] if not remove_time else [str(i.date()) for i in df[x].to_list()]
     return {
-    'title': title,
+    'title': 'Plot of '+ y + ' over '+x+':',
     'y': df[y].values.tolist(),
+    'x': x_plot
+    }
+    
+def double_line_plot(df: pd.DataFrame, x: str, y1: str, y2: str, remove_time: bool = False):
+    '''
+        returns an object with data which is used to plot Apache E Charts waterfall plot
+        
+        Args:
+            - df (pd.DataFrame): dataframe with time series to be plotted
+            - x (str): column name of datetime axis
+            - y1 (str): first column name of time series data
+            - y2 (str): second column name of time series data
+            - title (str): title of plot
+            - remove_time (bool): True will not include time with the date strings in the output
+    '''
+    x_plot =  [str(i.date())+' '+str(i.time()) for i in df[x].to_list()] if not remove_time else [str(i.date()) for i in df[x].to_list()]
+    return {
+    'title': 'Plot of '+ y1 +' and ' +y2 + ' over '+x+':',
+    'y1': df[y1].values.tolist(),
+    'y2': df[y2].values.tolist(),
     'x': x_plot
     }
 
