@@ -7,106 +7,183 @@ from statsmodels.stats.stattools import durbin_watson
 import statsmodels.api as sm
 
 class Trend:
-    def __init__(self, df, y: str, x: str):
-        self.df = df
-        self.x = x
-        self.y = y
+    '''
+     class for the trend property
+    '''
+    def __init__(self, df: pd.DataFrame, y: str, x: str):
+        '''
+        constructor for Trend class
+        
+        Args: 
+            - df: pandas DataFrame with time series column
+            - y: column name of time series data
+            - x: column name of datetime axis 
+        '''
+        self._df = df
+        self._x = x
+        self._y = y
         self._index_df()
 
     def _index_df(self):
-        idf = pd.DataFrame(self.df[[self.x, self.y]])
-        idf[self.x] = pd.to_datetime(idf[self.x])
-        idf = idf.set_index([self.x])
-        self.idf = idf
+        '''
+        creates an indexed dataframe recognised by decomposer
+        '''
+        idf = pd.DataFrame(self._df[[self._x, self._y]])
+        idf[self._x] = pd.to_datetime(idf[self._x])
+        idf = idf.set_index([self._x])
+        self._idf = idf
 
-    def trend(self):
-        t = seasonal_decompose(self.idf, model = "multiplicative").trend
-        return t
+    def _trend(self):
+        '''
+        returns the trend component of the loaded timeseries
+        
+        Returns:
+            - (pd.Series): trend component of timeseries
+        '''
+        # print(self._idf)
+        t = seasonal_decompose(self._idf[self._idf.columns[0]])
+        return t.trend
 
-    def plot(self, show_plot = False):
-        t = self.trend()
+    def plot(self, remove_time = False):
+        '''
+        returns dictionary with paramters which can be fed into Apache ECharts
+        
+        Args:
+            - remove_time (bool): True if datetime data must also include time along with date, defaults to False
+            
+        Returns:
+            - (dict):
+                - 'title' (str): title of plot
+                - 'data' (list): values of trend component
+                - 'x' (list): values of x axis, datetime
+        '''
+        t = self._trend()
+        # print(t)
         vals = t.array.dropna().tolist()
-        if not show_plot:
-            return {
-                "title": "Trend of " + self.idf.columns[0] + ":",
-                "data": vals,
-                "x": [str(i.date())+' '+str(i.time()) for i in self.idf.index.to_list()]
-            }
-        else:
-            t.plot()
+        x_plot =  [str(i.date())+' '+str(i.time()) for i in self._idf.index.to_list()] if not remove_time else [str(i.date()) for i in self._idf.index.to_list()]
+        return {
+            "title": "Trend of " + self._idf.columns[0] + ":",
+            "data": vals,
+            "x": x_plot
+        }
 
     def detrend(self):
-        least_squares = OLS(self.df[self.y].values, list(range(self.df.shape[0])))
+        '''
+            returns dataframe with original and de-trended values using OLS linear regression
+            
+            Args:
+                - None
+                
+            Returns:
+                - (pd.DataFrame): dataframe with original and de-trended values using OLS linear regression
+        '''
+        least_squares = OLS(self._df[self._y].values, list(range(self._df.shape[0])))
         result = least_squares.fit()
-        fit = pd.Series(result.predict(list(range(self.df.shape[0]))), index = self.df.index)
-        detrended = self.df[self.y].values - fit.values
-
+        fit = pd.Series(result.predict(list(range(self._df.shape[0]))), index = self._df.index)
+        detrended = self._df[self._y].values - fit.values
         detrend_df = pd.DataFrame()
-        detrend_df['Original'] = self.df[self.y]
-        detrend_df['Detrend'] = pd.Series(detrended)
-        detrend_df[self.x] = self.df[self.x]
-        detrend_df = detrend_df.set_index([self.x])
+        detrend_df['Original'] = self._df[self._y]
+        detrend_df['Detrend'] = pd.Series(detrended).values
+        detrend_df[self._x] = self._df[self._x]
+        detrend_df = detrend_df.set_index([self._x])
         return detrend_df
 
 
-    def plot_detrend(self, show_plot = False, remove_time = False):
+    def plot_detrend(self, remove_time = False):
+        '''
+            returns dictionary with paramters which can be fed into Apache ECharts for detrend plot
+
+            Args:
+            - remove_time (bool): True if datetime data must also include time along with date
+            
+            Returns:
+                - (dict):
+                    - 'title' (str): title of plot
+                    - 'data' (list): values of original series
+                    - 'data_detrend (list): values of detrended series
+                    - 'x' (list): values of x axis, datetime
+        '''
         d = self.detrend()
-        x_plot =  [str(i.date())+' '+str(i.time()) for i in self.idf.index.to_list()] if not remove_time else [str(i.date()) for i in self.idf.index.to_list()]
-        if not show_plot:
-            return {
-                "title": "Original vs Detrend of " + self.idf.columns[0] + ":",
-                "data": d['Original'].values.tolist(),
-                "data_detrend": d['Detrend'].values.tolist(),
-                "x": x_plot
-            }
-        else:
-            d.plot()
+        x_plot =  [str(i.date())+' '+str(i.time()) for i in self._idf.index.to_list()] if not remove_time else [str(i.date()) for i in self._idf.index.to_list()]
+        return {
+            "title": "Original vs Detrend of " + self._idf.columns[0] + ":",
+            "data": d['Original'].values.tolist(),
+            "data_detrend": d['Detrend'].values.tolist(),
+            "x": x_plot
+        }
 
 class Seasonality:
-    def __init__(self, df, y: str, x: str):
-        self.df = df
-        self.x = x
-        self.y = y
+    '''
+        class for the seasonality property of timeseries
+    '''
+    def __init__(self, df: pd.DataFrame, y: str, x: str):
+        '''
+            constructor for the Seasonality class
+            
+            Args:
+                - df (pd.DataFrame): dataframe to be analysed
+                - y (str): column name of timeseries data to be analysed
+                - x (str): column name of datetime axis
+        '''
+        self._df = df
+        self._x = x
+        self._y = y
 
     def _index_df(self):
-        idf = pd.DataFrame(self.df[[self.x, self.y]])   
-        idf[self.x] = pd.to_datetime(idf[self.x])
-        idf = idf.set_index([self.x])
-        self.idf = idf
+        '''
+            creates an indexed dataframe recognised by decomposer
+        '''
+        idf = pd.DataFrame(self._df[[self._x, self._y]])   
+        idf[self._x] = pd.to_datetime(idf[self._x])
+        idf = idf.set_index([self._x])
+        self._idf = idf
 
     def seasonal(self, model = 'multiplicative'):
+        '''
+            seasonal component of the loaded timeseries
+            
+            Args:
+                - model (str): whether to use additive of multiplicative model for decomposition
+                
+            Returns:
+                - (pd.Series): seasonal component of timeseries
+        '''
         self._index_df()
-        t = seasonal_decompose(self.idf, model = model).seasonal
+        t = seasonal_decompose(self._idf, model = model).seasonal
         return t
 
-    def plot(self, show_plot = False, remove_time = False):
+    def plot(self, remove_time = False):
+        '''
+            plots the seasonal component of the data
+            
+            Args:
+                - remove_time (bool): True if datetime data must also include time along with date
+                
+        '''
         t = self.seasonal()
-        x_plot =  [str(i.date())+' '+str(i.time()) for i in self.idf.index.to_list()] if not remove_time else [str(i.date()) for i in self.idf.index.to_list()]
+        x_plot =  [str(i.date())+' '+str(i.time()) for i in self._idf.index.to_list()] if not remove_time else [str(i.date()) for i in self._idf.index.to_list()]
         vals = t.array.dropna().tolist()
-        if not show_plot:
-            return {
-                "title": "Seasonality of " + self.idf.columns[0] + ":",
-                "data": vals,
-                "x": x_plot
-            }
-        else:
-            t.plot()
+        return {
+            "title": "Seasonality of " + self._idf.columns[0] + ":",
+            "data": vals,
+            "x": x_plot
+        }
 
     def deseasonalize(self):
-        de = self.df[self.y].values / self.seasonal()
+        de = self._df[self._y].values / self.seasonal()
         deseasonalize_df = pd.DataFrame()
-        deseasonalize_df['Original'] = self.df[self.y]
-        deseasonalize_df['Deseasonalized'] = pd.Series(de.values)
-        deseasonalize_df[self.x] = self.df[self.x]
-        deseasonalize_df = deseasonalize_df.set_index([self.x])
+        deseasonalize_df['Original'] = self._df[self._y]
+        deseasonalize_df['Deseasonalized'] = pd.Series(de.values).values
+        deseasonalize_df[self._x] = self._df[self._x]
+        deseasonalize_df = deseasonalize_df.set_index([self._x])
         return deseasonalize_df
 
     def plot_deseasonalize(self, show_plot = False, remove_time = False):
         d = self.deseasonalize()
-        x_plot =  [str(i.date())+' '+str(i.time()) for i in self.idf.index.to_list()] if not remove_time else [str(i.date()) for i in self.idf.index.to_list()]
+        x_plot =  [str(i.date())+' '+str(i.time()) for i in self._idf.index.to_list()] if not remove_time else [str(i.date()) for i in self._idf.index.to_list()]
         if not show_plot:
             return {
-                "title": "Original vs Deseasonalized of " + self.idf.columns[0] + ":",
+                "title": "Original vs Deseasonalized of " + self._idf.columns[0] + ":",
                 "data": d['Original'].values.tolist(),
                 "data_des": d['Deseasonalized'].values.tolist(),
                 "x": x_plot
@@ -214,21 +291,20 @@ class Autocorrelation:
     def __init__(self):
         self.acf = None
 
-    def autocorrelation(self, timeseries, differencing = 1,  n_lags = 20):
-        diff = timeseries - timeseries.shift()
-        for i in range(differencing-1):
-            diff = diff - diff.shift()
-        self.diff = diff
-        lag_acf = acf(diff.dropna(), nlags = n_lags)
-        self.acf = lag_acf
-
+    def autocorrelation(self, timeseries, differencing = 0,  n_lags = 20):
+        
+        df = timeseries
+        
+        for i in range(differencing):
+            df = df.diff().dropna()
+            
+        acf_vals, confint = acf(df, alpha = 0.05)
         return {
-            'title': 'Autocorrelation plot: differencing = ' + str(differencing),
-            'acf_line': lag_acf.tolist(),
-            'lower': [-1.96/np.sqrt(len(diff))]*len(lag_acf),
-            'upper': [1.96/np.sqrt(len(diff))]*len(lag_acf),
-            'zero': [0] * len(lag_acf),
-            'x':list(range(len(lag_acf)))
+            'title': f'Autocorrelation plot of {timeseries.name}, order = {differencing}',
+            'y': acf_vals.tolist(),
+            'x': list(range(len(acf_vals))),
+            'upper': (confint[:, 1] - acf_vals).tolist(),
+            'lower': (confint[:, 0] - acf_vals).tolist()
         }
 
     def durbin_watson_test(self, timeseries, summary = False):
@@ -246,45 +322,25 @@ class Autocorrelation:
         else:
           print("As value of statistic is close to 4, series is negatively autocorrelated.")
       return dwtest
-
-    def estimate_q(self):
-        if self.acf is not None:
-            u_conf = 1.96/np.sqrt(len(self.diff))
-            for i in range(len(self.acf)):
-                if self.acf[i] > u_conf:
-                    return i, i+1
-        else:
-            print('Run Autocorrelation.autocorrelation() first')
-
+  
 class PartialAutocorrelation:
     def __init__(self):
         self.pacf = None
 
-    def partial_autocorrelation(self, timeseries, differencing = 1,  n_lags = 20):
-        diff = timeseries - timeseries.shift()
-        for i in range(differencing-1):
-            diff = diff - diff.shift()
-        self.diff = diff
-        lag_pacf = pacf(diff.dropna(), nlags = n_lags)
-        self.pacf = lag_pacf
-
+    def partial_autocorrelation(self, timeseries, differencing = 0,  n_lags = 20):
+        df = timeseries
+        
+        for i in range(differencing):
+            df = df.diff().dropna()
+            
+        pacf_vals, confint = pacf(df, alpha = 0.05)
         return {
-            'title': 'Partial autocorrelation plot: differencing = ' + str(differencing),
-            'pacf_line': lag_pacf.tolist(),
-            'lower': [-1.96/np.sqrt(len(diff))]*len(lag_pacf),
-            'upper': [1.96/np.sqrt(len(diff))]*len(lag_pacf),
-            'zero': [0] * len(lag_pacf),
-            'x':list(range(len(lag_pacf)))
+            'title': f'Partial Autocorrelation plot of {timeseries.name}, order = {differencing}',
+            'y': pacf_vals.tolist(),
+            'x': list(range(len(pacf_vals))),
+            'upper': (confint[:, 1] - pacf_vals).tolist(),
+            'lower': (confint[:, 0] - pacf_vals).tolist()
         }
-
-    def estimate_p(self):
-        if self.pacf is not None:
-            u_conf = 1.96/np.sqrt(len(self.diff))
-            for i in range(len(self.pacf)):
-                if self.pacf[i] > u_conf:
-                    return i,i+1
-        else:
-            print('Run PartialAutocorrelation.partial_autocorrelation() first.')
 
 class CrossCorrelation:
     def __init__(self, series1, series2, x):

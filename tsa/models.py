@@ -1,7 +1,6 @@
-from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
-from statsmodels.tsa.stattools import adfuller
+from statsmodels.tsa.stattools import adfuller, kpss, range_unit_root_test
 import pmdarima as pm
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
 from tsa.dateconverter import DateConverter
@@ -96,7 +95,7 @@ class Arima:
     def _index_df(self, df: pd.DataFrame, x: str, y: str):
         idf = pd.DataFrame(df[[x, y]])
         converter = DateConverter()
-        idf[x] = idf[x].apply(lambda x: converter.convert_date(x))
+        idf[x] = idf[x].apply(lambda x: converter.convert_date(x, infer_format=True))
         idf = idf.set_index([x])
         return idf
     
@@ -133,9 +132,9 @@ class Arima:
         else:
             forecasts = self.predict(len(test_df))
             if exclude_time:
-                x_axis_data = self._df.index.tolist()+[str(i.date()) for i in forecasts.index.tolist()]
+                x_axis_data = [str(i.date()) for i in self._df.index.tolist()]+[str(i.date()) for i in forecasts.index.tolist()]
             else:
-                x_axis_data = self._df.index.tolist()+[str(i.date()) + ' ' + str(i.time()) for i in forecasts.index.tolist()]
+                x_axis_data = [str(i.date()) + ' ' + str(i.time()) for i in self._df.index.tolist()]+[str(i.date()) + ' ' + str(i.time()) for i in forecasts.index.tolist()]
             y_axis_series = self._df[self._df.columns[0]].to_list() + ['-']*len(test_df)
             y_axis_forecast = ['-']*len(self._df) + forecasts.values.tolist()
             y_axis_test = ['-']*len(self._df) + test_df[y].to_list()
@@ -148,25 +147,55 @@ class Arima:
                 'y_forecast': y_axis_forecast
             }
     
-    def test_stationarity(self, order_of_differencing = 0):
+    def test_stationarity(self, order_of_differencing = 0,  test = 'adf'):
         
         df = self._df
         
         for i in range(order_of_differencing):
             df = df.diff().dropna()
         
-        dftest = adfuller(df[self._y], autolag = 'AIC')
-        print("1. ADF : ",dftest[0])
-        print("2. P-Value : ", dftest[1])
-        print("3. Num Of Lags : ", dftest[2])
-        print("4. Num Of Observations Used For ADF Regression and Critical Values Calculation :", dftest[3])
-        print("5. Critical Values :")
-        for key, val in dftest[4].items():
-            print("\t",key, ": ", val)
-        if dftest[1] > 0.05:
-            print(f"\n\nAs p-value is outside the confidence interval of 95%, series is non-stationary.\nDifferenced: {order_of_differencing}")
+        if test == 'adf':
+            dftest = adfuller(df[self._y], autolag = 'AIC')
+            print("1. ADF : ",dftest[0])
+            print("2. P-Value : ", dftest[1])
+            print("3. Num Of Lags : ", dftest[2])
+            print("4. Num Of Observations Used For ADF Regression and Critical Values Calculation :", dftest[3])
+            print("5. Critical Values :")
+            for key, val in dftest[4].items():
+              print("\t",key, ": ", val)
+            if dftest[1] > 0.05:
+                print("\n\nAs p-value is outside the confidence interval of 95%, series is non-stationary.")
+            else:
+                print("\n\nAs p-value is inside the confidence interval of 95%, series is stationary.")
+        
+        elif test == 'kpss':
+            dftest = kpss(df[self._y], regression = 'ct')
+            print("1. KPSS : ",dftest[0])
+            print("2. P-Value : ", dftest[1])   
+            print("3. Num Of Lags : ", dftest[2])
+            # print("4. Num Of Observations Used For KPSS Regression and Critical Values Calculation :", dftest[3])
+            print("4. Critical Values :")
+            for key, val in dftest[3].items():
+                print("\t",key, ": ", val)
+            if dftest[1] > 0.05:
+                print("\n\nAs p-value is outside the confidence interval of 95%, series is non-stationary.")
+            else:
+                print("\n\nAs p-value is inside the confidence interval of 95%, series is stationary.")
+        elif test == 'rur':
+            dftest = range_unit_root_test(df[self._y])
+            print("1. RUR Stat : ",dftest[0])
+            print("2. P-Value : ", dftest[1])
+            # print("3. Num Of Lags : ", dftest[2])
+            # print("4. Num Of Observations Used For KPSS Regression and Critical Values Calculation :", dftest[3])
+            print("3. Critical Values :")
+            for key, val in dftest[2].items():
+                print("\t",key, ": ", val)
+            if dftest[1] > 0.05:
+                    print("\n\nAs p-value is outside the confidence interval of 95%, series is non-stationary.")
+            else:
+                    print("\n\nAs p-value is inside the confidence interval of 95%, series is stationary.")
         else:
-            print(f"\n\nAs p-value is inside the confidence interval of 95%, series is stationary.\nDifferenced: {order_of_differencing}")
+            raise ValueError("Invalid test name.")
     
     def acf_plot(self, order_of_differencing = 0):
         

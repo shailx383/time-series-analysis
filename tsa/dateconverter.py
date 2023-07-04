@@ -88,7 +88,7 @@ class DateConverter:
                                                 'Time zone name (empty string if the object is naive).']}
         return
 
-    def convert_date(self, date: str, include_time = False, format_str=None):
+    def convert_date(self, date: str, include_time = False, format_str=None, infer_format = False):
         '''
             converts date string into unified datetime format
             
@@ -96,10 +96,13 @@ class DateConverter:
                 - date (str): date string
                 - include_time (bool): True if output should include time along with date
                 - format_str (str): format of input date string, if None infers format from self.formats
+                - infer_format (bool): format of input date string, if True infers format based on pandas function pd.to_datetime()
             
             Returns:
                 (str): date in YYYY-MM-DD format
         '''
+        if infer_format:
+            return pd.to_datetime(date)
         if not format_str:
             for date_format in self.formats:
                 try:
