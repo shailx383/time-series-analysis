@@ -32,6 +32,16 @@ class Trend:
         idf[self._x] = pd.to_datetime(idf[self._x])
         idf = idf.set_index([self._x])
         self._idf = idf
+        
+    def _infer_period(self):
+        self._index_df()
+        try:
+            seasonal_decompose(self._idf[self._idf.columns[0]])
+        except ValueError:
+            freq = pd.to_timedelta(np.diff(self._idf[self._idf.columns[0]]).min())
+            self._period = int(24*60*60/(freq.seconds))
+        else:
+            self._period = None
 
     def _trend(self):
         '''
@@ -40,8 +50,8 @@ class Trend:
         Returns:
             - (pd.Series): trend component of timeseries
         '''
-        # print(self._idf)
-        t = seasonal_decompose(self._idf[self._idf.columns[0]])
+        self._infer_period()
+        t = seasonal_decompose(self._idf[self._idf.columns[0]], period=self._period) if self._period is not None else seasonal_decompose(self._idf[self._idf.columns[0]])
         return t.trend
 
     def plot(self, remove_time = False):
@@ -50,6 +60,7 @@ class Trend:
         
         Args:
             - remove_time (bool): True if datetime data must also include time along with date, defaults to False
+            - period (int|None): frequency in minutes, infers frequency if None
             
         Returns:
             - (dict):
@@ -58,7 +69,6 @@ class Trend:
                 - 'x' (list): values of x axis, datetime
         '''
         t = self._trend()
-        # print(t)
         vals = t.array.dropna().tolist()
         x_plot =  [str(i.date())+' '+str(i.time()) for i in self._idf.index.to_list()] if not remove_time else [str(i.date()) for i in self._idf.index.to_list()]
         return {
@@ -138,6 +148,16 @@ class Seasonality:
         idf = idf.set_index([self._x])
         self._idf = idf
 
+    def _infer_freq(self):
+        self._index_df()
+        try:
+            seasonal_decompose(self._idf[self._idf.columns[0]])
+        except ValueError:
+            freq = pd.to_timedelta(np.diff(self._idf[self._idf.columns[0]]).min())
+            self._period = int(24*60*60/(freq.seconds))
+        else:
+            self._period = None
+
     def seasonal(self, model = 'multiplicative'):
         '''
             seasonal component of the loaded timeseries
@@ -148,8 +168,9 @@ class Seasonality:
             Returns:
                 - (pd.Series): seasonal component of timeseries
         '''
+        self._infer_freq()
         self._index_df()
-        t = seasonal_decompose(self._idf, model = model).seasonal
+        t = seasonal_decompose(self._idf, model = model).seasonal if self._period is None else seasonal_decompose(self._idf, model = model, period=self._period).seasonal
         return t
 
     def plot(self, remove_time = False):
