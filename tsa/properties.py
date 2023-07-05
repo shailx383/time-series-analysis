@@ -5,6 +5,7 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import adfuller, kpss, range_unit_root_test, acf, pacf, ccf, grangercausalitytests, acovf, ccovf
 from statsmodels.stats.stattools import durbin_watson
 import statsmodels.api as sm
+from typing import Union
 
 class Trend:
     '''
@@ -158,7 +159,7 @@ class Seasonality:
         else:
             self._period = None
 
-    def seasonal(self, model = 'multiplicative'):
+    def seasonal(self, model: str = 'multiplicative'):
         '''
             seasonal component of the loaded timeseries
             
@@ -173,12 +174,18 @@ class Seasonality:
         t = seasonal_decompose(self._idf, model = model).seasonal if self._period is None else seasonal_decompose(self._idf, model = model, period=self._period).seasonal
         return t
 
-    def plot(self, remove_time = False):
+    def plot(self, remove_time: bool = False):
         '''
             plots the seasonal component of the data
             
             Args:
                 - remove_time (bool): True if datetime data must also include time along with date
+            
+            Returns:
+                - (dict):
+                    - 'title': title of the plot
+                    - 'data': seasonal component
+                    - 'x': datetime axis values, x-axis
                 
         '''
         t = self.seasonal()
@@ -191,6 +198,15 @@ class Seasonality:
         }
 
     def deseasonalize(self):
+        '''
+            deseasonalizes the timeseries
+            
+            Args:
+                - None
+                
+            Returns:
+                - (pd.DataFrame): dataframe containing original values and deseasonalied values
+        '''
         de = self._df[self._y].values / self.seasonal()
         deseasonalize_df = pd.DataFrame()
         deseasonalize_df['Original'] = self._df[self._y]
@@ -199,26 +215,48 @@ class Seasonality:
         deseasonalize_df = deseasonalize_df.set_index([self._x])
         return deseasonalize_df
 
-    def plot_deseasonalize(self, show_plot = False, remove_time = False):
+    def plot_deseasonalize(self, remove_time: bool = False):
+        '''
+            returns apache e charts object for plot of original time series against deseasonalized time series
+            
+            Args:
+                - remove_time (bool): True if datetime data must also include time along with date
+            
+            Returns:
+                - (dict):
+                    - 'title' (str): title of plot
+                    - 'data' (list): original timeseries data
+                    - 'data_des' (list): deseasonalized time series
+                    - 'x' (list): datetime axis data
+        '''
         d = self.deseasonalize()
         x_plot =  [str(i.date())+' '+str(i.time()) for i in self._idf.index.to_list()] if not remove_time else [str(i.date()) for i in self._idf.index.to_list()]
-        if not show_plot:
-            return {
-                "title": "Original vs Deseasonalized of " + self._idf.columns[0] + ":",
-                "data": d['Original'].values.tolist(),
-                "data_des": d['Deseasonalized'].values.tolist(),
-                "x": x_plot
-            }
-        else:
-            d.plot()
+        return {
+            "title": "Original vs Deseasonalized of " + self._idf.columns[0] + ":",
+            "data": d['Original'].values.tolist(),
+            "data_des": d['Deseasonalized'].values.tolist(),
+            "x": x_plot
+        }
 
 class Stationarity:
-    def __init__(self, df, x, y):
+    '''
+        class for stationarity property of time series
+    '''
+    def __init__(self, df: pd.DataFrame, x: str, y: str):
+        '''
+            constructor of Stationarity class
+        '''
         self.df = df
         self.x = x
         self.y = y
 
-    def test_stationarity(self, test = 'adf', show_results = True):
+    def test_stationarity(self, test: str = 'adf'):
+        '''
+            tests stationarity of the time series and prints automatic summary
+            
+            Args:
+                - test (str): one among 'adf', 'kpss' or 'rur' test
+        '''
         if test == 'adf':
             dftest = adfuller(self.df[self.y], autolag = 'AIC')
             print("1. ADF : ",dftest[0])
@@ -262,7 +300,16 @@ class Stationarity:
             print("Invlaid Test.")
 
 
-    def make_stationary(self, method = None, rolling = True, window = 12, test = True ):
+    def make_stationary(self, method: Union[str, None]= None, rolling: bool = True, window :int = 12, test: bool = True ):
+        '''
+            transforms non-stationary time series into stationary series
+            
+            Args: 
+                - method (None|str): None or 'log' or 'power'
+                - rolling (bool): uses rolling mean for transformation
+                - window (int): window for rolling mean
+                - test (bool): tests stationaroity using ADF test
+        '''
         timeseries = self.df[self.y]
         if not method: # only using rolling mean
             rolling_mean = timeseries.rolling(window = window).mean()
@@ -300,7 +347,17 @@ class Stationarity:
         self.transformed = transformed
         return transformed.dropna()
 
-    def get_transform_plot_params(self, remove_time = False):
+    def get_transform_plot_params(self, remove_time: bool= False):
+        '''
+            returns apache echarts object for plotting transformed time series
+            
+            Args:
+                - remove_time (bool): True if datetime data must also include time along with date
+                
+            Returns:
+                - (dict): info for plotting
+            
+        '''
         x_plot =  [str(i.date())+' '+str(i.time()) for i in self.df[self.x].to_list()] if not remove_time else [str(i.date()) for i in self.df[self.x].to_list()]   
         return {
             'title': 'Transformed series',
