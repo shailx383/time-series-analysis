@@ -275,7 +275,6 @@ class Stationarity:
             print("1. KPSS : ",dftest[0])
             print("2. P-Value : ", dftest[1])   
             print("3. Num Of Lags : ", dftest[2])
-            # print("4. Num Of Observations Used For KPSS Regression and Critical Values Calculation :", dftest[3])
             print("4. Critical Values :")
             for key, val in dftest[3].items():
                 print("\t",key, ": ", val)
@@ -287,8 +286,6 @@ class Stationarity:
             dftest = range_unit_root_test(self.df[self.y])
             print("1. RUR Stat : ",dftest[0])
             print("2. P-Value : ", dftest[1])
-            # print("3. Num Of Lags : ", dftest[2])
-            # print("4. Num Of Observations Used For KPSS Regression and Critical Values Calculation :", dftest[3])
             print("3. Critical Values :")
             for key, val in dftest[2].items():
                 print("\t",key, ": ", val)
