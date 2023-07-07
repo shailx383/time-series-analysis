@@ -8,19 +8,19 @@ import properties as props
 import sys
 
 # specifying data
-df = pd.read_csv("datasets/5/Wind Time Series Dataset(10min).csv")
+df = pd.read_csv('datasets/5/train_ML_IOT.csv.zip')
 
 # conditions to filter dataframe
-filter_conditions = {}
+filter_conditions = {"Junction": 1}
 for col, val in filter_conditions.items():
     df = pd.DataFrame(df[df[col] == val])
 
 # columns to drop
-drop_cols = []
+drop_cols = ['ID']
 df = df.drop(drop_cols, axis = 1) if len(drop_cols) else df
 
 #specifying time axis
-x = "Time"
+x = "DateTime"
 y = df.columns.tolist()
 y.remove(x)
 

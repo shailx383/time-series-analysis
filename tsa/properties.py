@@ -356,8 +356,7 @@ class Stationarity:
                     diff = rolling_power - rolling_power.shift()
                     transformed = diff
             else:
-                print("Invalid Method")
-                return
+                raise ValueError("Invalid Method")
 
         if test:
             p_val = adfuller(transformed.dropna())[1]
@@ -415,7 +414,7 @@ class Autocorrelation:
                     - 'y': autocorrelation values
                     - 'x': lag values
                     - 'upper': upper confidence interval values
-                    - 'lower' lower confidence interval values
+                    - 'lower': lower confidence interval values
         '''
 
         df = timeseries
@@ -488,7 +487,7 @@ class PartialAutocorrelation:
                     - 'y': partial autocorrelation values
                     - 'x': lag values
                     - 'upper': upper confidence interval values
-                    - 'lower' lower confidence interval values
+                    - 'lower': lower confidence interval values
         '''
         df = timeseries
 
