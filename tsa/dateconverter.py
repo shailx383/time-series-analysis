@@ -7,6 +7,7 @@ class DateConverter:
     '''
         class for conversion of dates of any format into unified pandas datetime object
     '''
+
     def __init__(self):
         self.formats = [
             "%Y-%m-%d",  # YYYY-MM-DD
@@ -88,16 +89,16 @@ class DateConverter:
                                                 'Time zone name (empty string if the object is naive).']}
         return
 
-    def convert_date(self, date: str, include_time = False, format_str=None, infer_format = False):
+    def convert_date(self, date: str, include_time=False, format_str=None, infer_format=False):
         '''
             converts date string into unified datetime format
-            
+
             Args:   
                 - date (str): date string
                 - include_time (bool): True if output should include time along with date
                 - format_str (str): format of input date string, if None infers format from self.formats
                 - infer_format (bool): format of input date string, if True infers format based on pandas function pd.to_datetime()
-            
+
             Returns:
                 (str): date in YYYY-MM-DD format
         '''
@@ -121,28 +122,29 @@ class DateConverter:
                 date = datetime.strptime(date, format_str).strftime("%Y-%m-%d")
                 return pd.to_datetime(date)
             else:
-                date = datetime.strptime(date, format_str).strftime("%Y-%m-%d %H:%M:%S")
+                date = datetime.strptime(
+                    date, format_str).strftime("%Y-%m-%d %H:%M:%S")
                 return pd.to_datetime(date)
 
     def add_format(self, date_format: str):
         '''
             adds a date format to the set of date_formats
-            
+
             Args:
                 - date_format (str): date format to be added
-            
+
             Returns:
                 - None
         '''
         self.formats.append(date_format)
-        
+
     def directive_df(self):
         '''
             dataframe of string directives to specify format
-            
+
             Args:
                 - no arguments
-            
+
             Returns:
                 - (pd.DataFrame): dataframe with all directives, examples, and description
         '''
