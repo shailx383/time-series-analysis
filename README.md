@@ -48,3 +48,9 @@ Plots, visualizations, models, tests and properties of time series
 | 17  | ARIMA forecast plot     | Univariate    | plot forecast given by ARIMA                                                          |
 
 ## Models
+
+| No. | Name                  | Description                                                      |
+| --- | --------------------- | ---------------------------------------------------------------- |
+| 1   | ARIMA                 | use Autoregression, differencing, moving average for forecasting |
+| 2   | Moving Average        | use moving average and rolling windows for forecasting           |
+| 3   | Exponential Smoothing | Holtwinter's ES model for time series forecasting                |
