@@ -296,7 +296,7 @@ class Stationarity:
             print("4. Critical Values :")
             for key, val in dftest[3].items():
                 print("\t", key, ": ", val)
-            if dftest[1] > 0.05:
+            if dftest[1] < 0.05:
                 print(
                     "\n\nAs p-value is outside the confidence interval of 95%, series is non-stationary.")
             else:
