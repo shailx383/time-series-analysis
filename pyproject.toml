@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "tsa"
+version = "0.1.0"
+description = ""
+authors = ["Subbulakshmi-RS <subbulakshmi.r@couture.ai>"]
+readme = "README.md"
+packages = [{include = "tsa"}]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.12"
+
+statsmodels = "~0.14.0"
+pmdarima = "~2.0.3"
+scikit-learn = "~1.2.2"
+scipy = "~1.10.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
