@@ -94,3 +94,20 @@ def impute_time_axis(time_axis: pd.Series, freq: timedelta = timedelta(days=1)):
             column.append(i)
     ser = pd.Series(pd.to_datetime(column))
     return ser
+
+# def impute_numerical:
+
+def impute_categorical_with_mode(col: pd.Series):
+    '''
+        imputes null values in categorical variables
+        
+        Args:
+            - col (pd.Series): series of variable to be imputed
+        
+        Returns:
+            - (pd.Series): series with no nans
+    '''
+    d = col.value_counts().to_dict()
+    max(d, key = lambda x: d[x])
+    new_col = col.fillna(max(d, key = lambda x: d[x]))
+    return new_col
